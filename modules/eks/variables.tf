@@ -73,9 +73,9 @@ variable "enabled_cluster_log_types" {
 }
 
 variable "log_retention_in_days" {
-  description = "Number of days to retain log events in CloudWatch"
+  description = "Number of days to retain log events in CloudWatch. Set to 0 to disable retention policy (avoids permission issues)"
   type        = number
-  default     = 7
+  default     = 0
 }
 
 variable "key_pair_name" {

@@ -111,7 +111,7 @@ resource "aws_security_group" "node_group" {
   ingress {
     description = "Allow nodes to communicate with each other"
     from_port   = 0
-    to_port     = 65535
+    to_port     = 0
     protocol    = "-1"
     self        = true
   }
@@ -151,7 +151,7 @@ resource "aws_security_group" "public_node_group" {
   ingress {
     description = "Allow nodes to communicate with each other"
     from_port   = 0
-    to_port     = 65535
+    to_port     = 0
     protocol    = "-1"
     self        = true
   }
@@ -159,7 +159,7 @@ resource "aws_security_group" "public_node_group" {
   ingress {
     description     = "Allow private nodes to communicate with public nodes"
     from_port       = 0
-    to_port         = 65535
+    to_port         = 0
     protocol        = "-1"
     security_groups = [aws_security_group.node_group.id]
   }
@@ -234,8 +234,10 @@ resource "aws_eks_cluster" "main" {
 
 # CloudWatch Log Group for EKS Cluster
 resource "aws_cloudwatch_log_group" "cluster" {
-  name              = "/aws/eks/${var.cluster_name}/cluster"
-  retention_in_days = var.log_retention_in_days
+  name = "/aws/eks/${var.cluster_name}/cluster"
+  # Note: retention_in_days removed to avoid permission issues
+  # If you have logs:PutRetentionPolicy permission, you can set retention via AWS Console or CLI
+  # Example: aws logs put-retention-policy --log-group-name /aws/eks/${var.cluster_name}/cluster --retention-in-days 7
 
   tags = merge(
     var.tags,
@@ -243,6 +245,10 @@ resource "aws_cloudwatch_log_group" "cluster" {
       Name = "${var.cluster_name}-logs"
     }
   )
+
+  lifecycle {
+    ignore_changes = [retention_in_days]
+  }
 }
 
 # EKS Private Node Group (1 node in private subnet)
