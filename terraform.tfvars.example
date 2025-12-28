@@ -53,6 +53,14 @@ eks_node_group_role_arn = ""  # Leave empty when use_eks_permitted_roles = true
 # To find existing roles:
 # aws iam list-roles --query 'Roles[?contains(RoleName, `eks`) || contains(RoleName, `EKS`)].{RoleName:RoleName, Arn:Arn}' --output table
 
+# EKS Fargate Configuration (Recommended for resource-constrained environments)
+# When enabled, managed node groups are NOT created
+# Fargate is better suited for strict resource limits (256m CPU, 512Mi memory per pod)
+# Set to true to use Fargate instead of managed node groups
+eks_enable_fargate = false  # Set to true to use Fargate profiles
+eks_fargate_profile_namespaces = ["default", "kube-system"]  # Namespaces to run on Fargate
+# eks_fargate_pod_execution_role_arn = ""  # Leave empty to let Terraform create the role
+
 # Tags (Optional)
 # tags = {
 #   Environment = "development"

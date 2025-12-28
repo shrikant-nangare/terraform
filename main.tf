@@ -177,18 +177,21 @@ module "eks" {
   source = "./modules/eks"
   count  = var.eks_cluster_name != "" ? 1 : 0
 
-  project_name        = var.project_name
-  cluster_name        = var.eks_cluster_name
-  vpc_id              = module.vpc.vpc_id
-  private_subnet_ids  = module.vpc.private_subnet_ids
-  public_subnet_ids   = module.vpc.public_subnet_ids
-  kubernetes_version  = var.eks_kubernetes_version
-  node_instance_type  = var.eks_node_instance_type
-  node_desired_size   = var.eks_node_desired_size
-  node_min_size       = var.eks_node_min_size
-  node_max_size       = var.eks_node_max_size
-  key_pair_name       = var.key_pair_name
-  cluster_role_arn    = local.eks_cluster_role_arn
-  node_group_role_arn = local.eks_node_group_role_arn
-  tags                = var.tags
+  project_name                   = var.project_name
+  cluster_name                   = var.eks_cluster_name
+  vpc_id                         = module.vpc.vpc_id
+  private_subnet_ids             = module.vpc.private_subnet_ids
+  public_subnet_ids              = module.vpc.public_subnet_ids
+  kubernetes_version             = var.eks_kubernetes_version
+  node_instance_type             = var.eks_node_instance_type
+  node_desired_size              = var.eks_node_desired_size
+  node_min_size                  = var.eks_node_min_size
+  node_max_size                  = var.eks_node_max_size
+  key_pair_name                  = var.key_pair_name
+  cluster_role_arn               = local.eks_cluster_role_arn
+  node_group_role_arn            = local.eks_node_group_role_arn
+  enable_fargate                 = var.eks_enable_fargate
+  fargate_profile_namespaces     = var.eks_fargate_profile_namespaces
+  fargate_pod_execution_role_arn = var.eks_fargate_pod_execution_role_arn
+  tags                           = var.tags
 }

@@ -30,17 +30,17 @@ output "cluster_security_group_id" {
 
 output "private_node_group_id" {
   description = "ID of the EKS private node group"
-  value       = aws_eks_node_group.private.id
+  value       = length(aws_eks_node_group.private) > 0 ? aws_eks_node_group.private[0].id : null
 }
 
 output "private_node_group_arn" {
   description = "ARN of the EKS private node group"
-  value       = aws_eks_node_group.private.arn
+  value       = length(aws_eks_node_group.private) > 0 ? aws_eks_node_group.private[0].arn : null
 }
 
 output "private_node_group_status" {
   description = "Status of the EKS private node group"
-  value       = aws_eks_node_group.private.status
+  value       = length(aws_eks_node_group.private) > 0 ? aws_eks_node_group.private[0].status : null
 }
 
 output "public_node_group_id" {
@@ -76,5 +76,20 @@ output "node_group_iam_role_arn" {
 output "cluster_certificate_authority_data" {
   description = "Base64 encoded certificate data required to communicate with the cluster"
   value       = aws_eks_cluster.main.certificate_authority[0].data
+}
+
+output "fargate_profile_id" {
+  description = "ID of the EKS Fargate profile"
+  value       = length(aws_eks_fargate_profile.main) > 0 ? aws_eks_fargate_profile.main[0].id : null
+}
+
+output "fargate_profile_arn" {
+  description = "ARN of the EKS Fargate profile"
+  value       = length(aws_eks_fargate_profile.main) > 0 ? aws_eks_fargate_profile.main[0].arn : null
+}
+
+output "fargate_pod_execution_role_arn" {
+  description = "IAM role ARN for Fargate pod execution"
+  value       = local.fargate_pod_execution_role_arn
 }
 

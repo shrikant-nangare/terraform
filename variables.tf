@@ -144,3 +144,22 @@ variable "eks_node_max_size" {
   type        = number
   default     = 3
 }
+
+# EKS Fargate Configuration
+variable "eks_enable_fargate" {
+  description = "Enable Fargate profiles instead of managed node groups. Recommended for resource-constrained environments. When enabled, node groups are not created."
+  type        = bool
+  default     = false
+}
+
+variable "eks_fargate_profile_namespaces" {
+  description = "List of Kubernetes namespaces to run on Fargate. Default includes 'default' and 'kube-system'."
+  type        = list(string)
+  default     = ["default", "kube-system"]
+}
+
+variable "eks_fargate_pod_execution_role_arn" {
+  description = "ARN of existing IAM role for Fargate pod execution. If empty and eks_enable_fargate is true, a role will be created."
+  type        = string
+  default     = ""
+}

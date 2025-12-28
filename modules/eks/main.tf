@@ -76,11 +76,47 @@ resource "aws_iam_role_policy_attachment" "node_group_AmazonEC2ContainerRegistry
   role       = aws_iam_role.node_group[0].name
 }
 
+# IAM Role for Fargate Pod Execution (only create if Fargate is enabled and role not provided)
+resource "aws_iam_role" "fargate_pod_execution" {
+  count = var.enable_fargate && var.fargate_pod_execution_role_arn == "" ? 1 : 0
+  name  = "${var.project_name}-eks-fargate-pod-execution-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "eks-fargate-pods.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = merge(
+    var.tags,
+    {
+      Name = "${var.project_name}-eks-fargate-pod-execution-role"
+    }
+  )
+}
+
+# Attach AWS managed policy for Fargate pod execution
+resource "aws_iam_role_policy_attachment" "fargate_pod_execution" {
+  count      = var.enable_fargate && var.fargate_pod_execution_role_arn == "" ? 1 : 0
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy"
+  role       = aws_iam_role.fargate_pod_execution[0].name
+}
+
 # Local values for role ARNs (either existing or created)
 # Defined after all IAM resources to ensure proper dependency resolution
 locals {
   cluster_role_arn    = var.cluster_role_arn != "" ? var.cluster_role_arn : aws_iam_role.cluster[0].arn
   node_group_role_arn = var.node_group_role_arn != "" ? var.node_group_role_arn : aws_iam_role.node_group[0].arn
+  fargate_pod_execution_role_arn = var.enable_fargate ? (
+    var.fargate_pod_execution_role_arn != "" ? var.fargate_pod_execution_role_arn : aws_iam_role.fargate_pod_execution[0].arn
+  ) : ""
 }
 
 
@@ -250,7 +286,9 @@ resource "aws_eks_cluster" "main" {
 # If you need to manage retention, do it via AWS Console or CLI after the cluster is created
 
 # EKS Private Node Group (1 node in private subnet)
+# Only create if Fargate is not enabled
 resource "aws_eks_node_group" "private" {
+  count           = var.enable_fargate ? 0 : 1
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = "${var.cluster_name}-private-node-group"
   node_role_arn   = local.node_group_role_arn
@@ -293,8 +331,9 @@ resource "aws_eks_node_group" "private" {
 }
 
 # EKS Public Node Group (1 node in public subnet)
+# Only create if Fargate is not enabled
 resource "aws_eks_node_group" "public" {
-  count           = length(var.public_subnet_ids) > 0 ? 1 : 0
+  count           = var.enable_fargate || length(var.public_subnet_ids) == 0 ? 0 : 1
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = "${var.cluster_name}-public-node-group"
   node_role_arn   = local.node_group_role_arn
@@ -334,5 +373,32 @@ resource "aws_eks_node_group" "public" {
 
   # Dependencies are handled implicitly through role_arn reference in local.node_group_role_arn
   # If creating role, the role and its policies will be ready before node group creation
+}
+
+# EKS Fargate Profile
+# Only create if Fargate is enabled
+resource "aws_eks_fargate_profile" "main" {
+  count                  = var.enable_fargate ? 1 : 0
+  cluster_name           = aws_eks_cluster.main.name
+  fargate_profile_name   = "${var.cluster_name}-fargate-profile"
+  pod_execution_role_arn = local.fargate_pod_execution_role_arn
+  subnet_ids             = var.private_subnet_ids
+
+  dynamic "selector" {
+    for_each = var.fargate_profile_namespaces
+    content {
+      namespace = selector.value
+    }
+  }
+
+  tags = merge(
+    var.tags,
+    {
+      Name = "${var.cluster_name}-fargate-profile"
+    }
+  )
+
+  # Ensure cluster is created before Fargate profile
+  depends_on = [aws_eks_cluster.main]
 }
 

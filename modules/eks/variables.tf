@@ -114,3 +114,22 @@ variable "node_group_role_arn" {
   default     = ""
 }
 
+# Fargate Configuration
+variable "enable_fargate" {
+  description = "Enable Fargate profiles instead of managed node groups. Recommended for resource-constrained environments."
+  type        = bool
+  default     = false
+}
+
+variable "fargate_profile_namespaces" {
+  description = "List of Kubernetes namespaces to run on Fargate. Default includes 'default' and 'kube-system'."
+  type        = list(string)
+  default     = ["default", "kube-system"]
+}
+
+variable "fargate_pod_execution_role_arn" {
+  description = "ARN of existing IAM role for Fargate pod execution. If empty and enable_fargate is true, a role will be created."
+  type        = string
+  default     = ""
+}
+
