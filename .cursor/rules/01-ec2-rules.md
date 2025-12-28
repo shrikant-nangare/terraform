@@ -131,22 +131,46 @@ Do NOT generate or reference:
 
 ### Allowed
 - Basic operations are supported
-- Managed node groups (EC2-based)
+- **Managed node groups (EC2-based)** - Optional, use when Fargate doesn't meet requirements
+- **Fargate profiles** - Recommended for resource-constrained environments
 - Standard Kubernetes features
 
 ### Service Roles Permitted
-- **Cluster Service Role:** Custom IAM role with `AmazonEKSClusterPolicy`
-- **Node Service Role:** Custom IAM role with:
-  - `AmazonEKSWorkerNodePolicy`
-  - `AmazonEKS_CNI_Policy`
-  - `AmazonEC2ContainerRegistryReadOnly`
+- **Cluster Service Role:** 
+  - Permitted name: `eksClusterRole`
+  - Must have `AmazonEKSClusterPolicy` attached
+- **Node Service Role (for managed node groups):**
+  - Permitted name: `AmazonEKSNodeRole`
+  - Must have policies attached:
+    - `AmazonEKSWorkerNodePolicy`
+    - `AmazonEKS_CNI_Policy`
+    - `AmazonEC2ContainerRegistryReadOnly`
+- **Fargate Pod Execution Role:**
+  - Custom IAM role with `AmazonEKSFargatePodExecutionRolePolicy`
+  - Created automatically by Terraform if not provided
 
-### Node Group Instance Types
+### Node Group Instance Types (for managed node groups only)
 - **Must comply with EC2 instance type restrictions:**
   - t2: nano, micro, small, medium
   - t3: nano, micro, small, medium
   - t4g: nano, micro, small, medium
 - **Node sizing:** Must respect EC2 resource limits (2 vCPU, 4 GB RAM per instance)
+- **Limit:** Maximum 3 EC2 nodes per node group
+
+### Fargate Profiles (Recommended)
+- **Recommended for resource-constrained environments** due to strict pod limits
+- **Advantages:**
+  - No EC2 instance management required
+  - Automatic scaling based on pod requests
+  - Automatic compliance with pod resource limits
+  - Pay only for running pods
+- **Requirements:**
+  - Pods MUST have resource requests and limits defined
+  - Maximum 3 Fargate profiles per cluster
+- **Limitations:**
+  - DaemonSets not supported
+  - Privileged containers not supported
+  - Host networking not supported
 
 ### Limits
 - **Pod Resource Limits:**
@@ -162,9 +186,11 @@ Do NOT generate or reference:
 - **Account-Level Resource Caps:**
   - Maximum Account-Wide CPU Cap: 6000 millicores (6 CPUs)
   - Maximum Account-Wide Memory Cap: 12288 MiB (12 GiB)
-- **Node Groups:**
+- **Node Groups (if using managed node groups):**
   - Maximum nodes per cluster: Limited by account-wide EC2 limits
+  - Maximum 3 nodes per node group
   - Node groups must use private subnets (with NAT Gateway) or public subnets
+  - Must carefully manage node counts to stay within cluster and account CPU limits
 
 
 ## ECR/ECR Public (Elastic Container Registry)
@@ -345,3 +371,89 @@ Do NOT generate or reference:
 - Verify EC2 instance types comply with vCPU/RAM limits
 - Validate EKS node instance types against EC2 restrictions
 - Check account-wide resource limits before provisioning
+- **For EKS:**
+  - Prefer Fargate profiles for resource-constrained environments
+  - If using managed node groups, ensure total CPU/memory stays within cluster and account limits
+  - Verify pods have resource requests/limits when using Fargate
+  - Ensure node group configurations don't exceed account-wide CPU cap (6000 millicores)
+
+
+Quick note on IAM roles
+
+EC2LabRole supports both PutRolePolicy and PassRole permissions.
+SecretsManagerRDSMySQLRot-* too could be utilised for RDS-specific scenarios
+‍
+‍
+EC2 Instances (Virtual Machines / Servers)
+
+EC2 instances are virtual servers. They are elastic, meaning they can easily scale up or down.
+Use nano, micro, small, or medium sizes for t1, t2, and t3 instances.
+Use gp2 (General Purpose) volumes with a maximum storage size of 30GB.
+Maximum of 3 stopped instances. If exceeded, all are terminated.
+EC2 instances stop behavior is set to "terminate."
+Total number of EC2 instances is limited to 5.
+Ensure a default VPC exists, creating one if necessary.
+‍
+S3 - Object Storage
+
+S3 buckets store files for easy upload and download.
+Bucket names must be unique. Add random numbers to ensure uniqueness.
+‍
+RDS - Relational Database Service
+
+RDS supports MySQL, MariaDB, PostgreSQL, Oracle, Microsoft SQL Server, and Amazon Aurora.
+Use the Free tier for MySQL, MariaDB, and PostgreSQL.
+For other engines, use a Single DB Instance, Burstable Class, micro or small instance, and General Purpose SSD (gp2).
+‍
+EKS - Elastic Kubernetes Service
+
+EKS quickly sets up a Kubernetes cluster.
+Cluster service role name: eksClusterRole (permitted name)
+Node service role name: AmazonEKSNodeRole (permitted name)
+CloudFormation stack name: eks-cluster-stack
+**Fargate profiles are recommended** for resource-constrained environments (256m CPU, 512Mi memory per pod limits).
+Limit of 3 Fargate profiles per cluster.
+If using managed node groups:
+  - Limit of 3 EC2 nodes per node group
+  - Allowed EC2 instance types: t2.micro, t2.nano, t2.small, t2.medium, t3.micro, t3.nano, t3.small, t3.medium
+  - Must respect account-wide CPU cap: 6000 millicores (6 CPUs)
+  - Must respect cluster CPU cap: 2000 millicores (2 CPUs)
+‍
+ECR - Elastic Container Registry
+
+Create and manage container repositories, similar to Docker Hub.
+‍
+Lambda - Serverless Computing
+
+Run code without managing servers.
+Memory size is limited to 256 MB, and timeout to 10 seconds. Violations are updated to 128 MB and 3 seconds.
+If a function is invoked over 300 times in the last hour, it is deleted.
+‍
+CodePipeline - CI/CD Service
+
+Automates build, test, and deploy phases.
+Compute types limited to t3.micro, t3.small, t3.medium. Violations updated to t3.micro.
+‍
+CodeDeploy - Deployment Service
+
+Automates application releases.
+Allowed EC2 instance types: t2.micro, t3.micro, t3.nano. Violations updated to t2.micro.
+‍
+CodeBuild - Build Service
+
+Compiles source code, runs tests, and produces packages.
+Allowed compute types: BUILD_GENERAL1_SMALL, BUILD_GENERAL2_SMALL.
+Violations updated to BUILD_GENERAL1_SMALL.
+‍
+ECS - Elastic Container Service
+
+Manages containerized applications.
+Limit of 3 container instances (EC2) per cluster. Violations result in cluster deletion.
+Allowed EC2 instance types same as EKS.
+Limit of 3 Fargate tasks per cluster.
+‍
+DynamoDB - NoSQL Database Service
+
+Provides fast, scalable NoSQL databases.
+Provisioned throughput set to 1 read and 1 write capacity unit.
+Billing mode set to "PAY_PER_REQUEST."
