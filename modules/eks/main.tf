@@ -31,12 +31,6 @@ resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSClusterPolicy" {
   role       = aws_iam_role.cluster[0].name
 }
 
-# Local values for role ARNs (either existing or created)
-locals {
-  cluster_role_arn = var.cluster_role_arn != "" ? var.cluster_role_arn : aws_iam_role.cluster[0].arn
-  node_group_role_arn = var.node_group_role_arn != "" ? var.node_group_role_arn : aws_iam_role.node_group[0].arn
-}
-
 # IAM Role for EKS Node Group (only create if existing role not provided)
 resource "aws_iam_role" "node_group" {
   count = var.node_group_role_arn == "" ? 1 : 0
@@ -82,6 +76,13 @@ resource "aws_iam_role_policy_attachment" "node_group_AmazonEC2ContainerRegistry
   role       = aws_iam_role.node_group[0].name
 }
 
+# Local values for role ARNs (either existing or created)
+# Defined after all IAM resources to ensure proper dependency resolution
+locals {
+  cluster_role_arn    = var.cluster_role_arn != "" ? var.cluster_role_arn : aws_iam_role.cluster[0].arn
+  node_group_role_arn = var.node_group_role_arn != "" ? var.node_group_role_arn : aws_iam_role.node_group[0].arn
+}
+
 
 # Security Group for EKS Cluster
 resource "aws_security_group" "cluster" {
@@ -100,7 +101,7 @@ resource "aws_security_group" "cluster" {
   tags = merge(
     var.tags,
     {
-      Name = "${var.project_name}-eks-cluster-sg"
+      Name                                        = "${var.project_name}-eks-cluster-sg"
       "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     }
   )
@@ -140,7 +141,7 @@ resource "aws_security_group" "node_group" {
   tags = merge(
     var.tags,
     {
-      Name = "${var.project_name}-eks-private-node-group-sg"
+      Name                                        = "${var.project_name}-eks-private-node-group-sg"
       "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     }
   )
@@ -188,7 +189,7 @@ resource "aws_security_group" "public_node_group" {
   tags = merge(
     var.tags,
     {
-      Name = "${var.project_name}-eks-public-node-group-sg"
+      Name                                        = "${var.project_name}-eks-public-node-group-sg"
       "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     }
   )
@@ -226,7 +227,7 @@ resource "aws_eks_cluster" "main" {
     subnet_ids              = concat(var.private_subnet_ids, var.public_subnet_ids)
     endpoint_private_access = true
     endpoint_public_access  = var.endpoint_public_access
-    public_access_cidrs    = var.endpoint_public_access_cidrs
+    public_access_cidrs     = var.endpoint_public_access_cidrs
     security_group_ids      = [aws_security_group.cluster.id]
   }
 
@@ -253,7 +254,7 @@ resource "aws_eks_node_group" "private" {
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = "${var.cluster_name}-private-node-group"
   node_role_arn   = local.node_group_role_arn
-  subnet_ids      = [var.private_subnet_ids[0]]  # Use first private subnet
+  subnet_ids      = [var.private_subnet_ids[0]] # Use first private subnet
   instance_types  = [var.node_instance_type]
   disk_size       = 6
 
@@ -282,7 +283,7 @@ resource "aws_eks_node_group" "private" {
   tags = merge(
     var.tags,
     {
-      Name = "${var.cluster_name}-private-node-group"
+      Name                                        = "${var.cluster_name}-private-node-group"
       "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     }
   )
@@ -297,7 +298,7 @@ resource "aws_eks_node_group" "public" {
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = "${var.cluster_name}-public-node-group"
   node_role_arn   = local.node_group_role_arn
-  subnet_ids      = [var.public_subnet_ids[0]]  # Use first public subnet
+  subnet_ids      = [var.public_subnet_ids[0]] # Use first public subnet
   instance_types  = [var.node_instance_type]
   disk_size       = 6
 
@@ -326,7 +327,7 @@ resource "aws_eks_node_group" "public" {
   tags = merge(
     var.tags,
     {
-      Name = "${var.cluster_name}-public-node-group"
+      Name                                        = "${var.cluster_name}-public-node-group"
       "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     }
   )

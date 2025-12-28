@@ -136,7 +136,7 @@ The codebase follows good Terraform module practices with clear separation of co
 - `vpc_id` (required)
 - `private_subnet_ids` (required)
 - `public_subnet_ids` (optional, default: [])
-- `kubernetes_version` (optional, default: "1.28")
+- `kubernetes_version` (optional, default: "1.32")
 - `node_instance_type` (optional, default: "t3.small")
 - `node_desired_size` (optional, default: 2) - **NOW USED**
 - `node_min_size` (optional, default: 1) - **NOW USED**
