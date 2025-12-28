@@ -139,3 +139,14 @@ output "eks_public_node_group_id" {
   description = "ID of the EKS public node group"
   value       = length(module.eks) > 0 ? module.eks[0].public_node_group_id : null
 }
+
+# EKS IAM Role Outputs
+output "eks_cluster_role_arn" {
+  description = "ARN of the EKS cluster IAM role"
+  value       = var.eks_cluster_name != "" && var.use_eks_permitted_roles ? (length(aws_iam_role.eks_cluster) > 0 ? aws_iam_role.eks_cluster[0].arn : null) : local.eks_cluster_role_arn
+}
+
+output "eks_node_group_role_arn" {
+  description = "ARN of the EKS node group IAM role"
+  value       = var.eks_cluster_name != "" && var.use_eks_permitted_roles ? (length(aws_iam_role.eks_node_group) > 0 ? aws_iam_role.eks_node_group[0].arn : null) : local.eks_node_group_role_arn
+}

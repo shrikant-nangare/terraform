@@ -90,14 +90,20 @@ variable "asg_cpu_target" {
 }
 
 # EKS IAM Role Variables (for restricted environments)
+variable "use_eks_permitted_roles" {
+  description = "If true, Terraform will create EKS roles with permitted names (eksClusterRole, AmazonEKSNodeRole). If false, use existing roles via eks_cluster_role_arn and eks_node_group_role_arn."
+  type        = bool
+  default     = true
+}
+
 variable "eks_cluster_role_arn" {
-  description = "ARN of existing IAM role for EKS cluster. Leave empty to create new role. Required if you don't have iam:PassRole permission."
+  description = "ARN of existing IAM role for EKS cluster. Used only if use_eks_permitted_roles is false. Leave empty to let Terraform create roles with permitted names."
   type        = string
   default     = ""
 }
 
 variable "eks_node_group_role_arn" {
-  description = "ARN of existing IAM role for EKS node group. Leave empty to create new role. Required if you don't have iam:PassRole permission."
+  description = "ARN of existing IAM role for EKS node group. Used only if use_eks_permitted_roles is false. Leave empty to let Terraform create roles with permitted names."
   type        = string
   default     = ""
 }

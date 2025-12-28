@@ -17,6 +17,88 @@ provider "aws" {
   region = var.aws_region
 }
 
+# EKS IAM Roles (created with permitted names for restricted environments)
+# These roles are created if they don't exist and use_eks_permitted_roles is true
+resource "aws_iam_role" "eks_cluster" {
+  count = var.eks_cluster_name != "" && var.use_eks_permitted_roles ? 1 : 0
+  name  = "eksClusterRole"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "eks.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = merge(
+    var.tags,
+    {
+      Name = "eksClusterRole"
+    }
+  )
+}
+
+resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
+  count      = var.eks_cluster_name != "" && var.use_eks_permitted_roles ? 1 : 0
+  role       = aws_iam_role.eks_cluster[0].name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+}
+
+resource "aws_iam_role" "eks_node_group" {
+  count = var.eks_cluster_name != "" && var.use_eks_permitted_roles ? 1 : 0
+  name  = "AmazonEKSNodeRole"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = merge(
+    var.tags,
+    {
+      Name = "AmazonEKSNodeRole"
+    }
+  )
+}
+
+resource "aws_iam_role_policy_attachment" "eks_node_worker_policy" {
+  count      = var.eks_cluster_name != "" && var.use_eks_permitted_roles ? 1 : 0
+  role       = aws_iam_role.eks_node_group[0].name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+}
+
+resource "aws_iam_role_policy_attachment" "eks_node_cni_policy" {
+  count      = var.eks_cluster_name != "" && var.use_eks_permitted_roles ? 1 : 0
+  role       = aws_iam_role.eks_node_group[0].name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+}
+
+resource "aws_iam_role_policy_attachment" "eks_node_registry_policy" {
+  count      = var.eks_cluster_name != "" && var.use_eks_permitted_roles ? 1 : 0
+  role       = aws_iam_role.eks_node_group[0].name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+}
+
+# Local values for EKS role ARNs
+locals {
+  eks_cluster_role_arn = var.eks_cluster_name != "" && var.use_eks_permitted_roles ? aws_iam_role.eks_cluster[0].arn : var.eks_cluster_role_arn
+  eks_node_group_role_arn = var.eks_cluster_name != "" && var.use_eks_permitted_roles ? aws_iam_role.eks_node_group[0].arn : var.eks_node_group_role_arn
+}
+
 # VPC Module
 module "vpc" {
   source = "./modules/vpc"
@@ -78,7 +160,7 @@ module "eks" {
   kubernetes_version  = var.eks_kubernetes_version
   node_instance_type  = var.eks_node_instance_type
   key_pair_name       = var.key_pair_name
-  cluster_role_arn    = var.eks_cluster_role_arn
-  node_group_role_arn = var.eks_node_group_role_arn
+  cluster_role_arn    = local.eks_cluster_role_arn
+  node_group_role_arn = local.eks_node_group_role_arn
   tags                = var.tags
 }
