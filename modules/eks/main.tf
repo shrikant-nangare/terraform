@@ -109,11 +109,11 @@ resource "aws_security_group" "node_group" {
   }
 
   ingress {
-    description     = "Allow nodes to communicate with each other"
-    from_port       = 0
-    to_port         = 65535
-    protocol        = "-1"
-    security_groups = [aws_security_group.node_group.id]
+    description = "Allow nodes to communicate with each other"
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "-1"
+    self        = true
   }
 
   egress {
@@ -149,11 +149,11 @@ resource "aws_security_group" "public_node_group" {
   }
 
   ingress {
-    description     = "Allow nodes to communicate with each other"
-    from_port       = 0
-    to_port         = 65535
-    protocol        = "-1"
-    security_groups = length(var.public_subnet_ids) > 0 ? [aws_security_group.public_node_group[0].id] : []
+    description = "Allow nodes to communicate with each other"
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "-1"
+    self        = true
   }
 
   ingress {
