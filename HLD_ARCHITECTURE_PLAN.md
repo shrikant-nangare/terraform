@@ -144,12 +144,13 @@ Creates the foundational networking infrastructure for all other components.
 #### Components
 - **VPC**: Single VPC with CIDR block (default: 10.0.0.0/16)
 - **Internet Gateway**: Provides internet access to public subnets
-- **Public Subnets**: 3 subnets across 3 AZs (10.0.0.0/19, 10.0.32.0/19, 10.0.64.0/19)
-- **Private Subnets**: 3 subnets across 3 AZs (10.0.96.0/19, 10.0.128.0/19, 10.0.160.0/19)
-- **NAT Gateways**: 3 NAT gateways (one per AZ) for private subnet outbound internet access
+- **Public Subnets**: Configurable count (default: 3) across multiple AZs
+- **Private Subnets**: Configurable count (default: 3) across multiple AZs
+- **Subnet Count**: Configurable via `vpc_subnet_count` variable (1-6 subnets)
+- **NAT Gateway**: Single NAT gateway (cost-optimized) in first public subnet, shared by all private subnets
 - **Route Tables**: 
   - 1 public route table (routes to IGW)
-  - 3 private route tables (routes to respective NAT gateways)
+  - 3 private route tables (all routes to the single NAT Gateway)
 
 #### Key Features
 - DNS hostnames and DNS support enabled
@@ -277,32 +278,43 @@ Deploys a managed Kubernetes cluster for containerized workloads.
 
 #### Components
 - **EKS Cluster**: Managed Kubernetes control plane
-  - Kubernetes version: 1.28 (configurable)
+  - Kubernetes version: 1.32 (configurable, supports 1.32, 1.33, 1.34)
   - Private endpoint access: Enabled
   - Public endpoint access: Configurable
   - CloudWatch logging: Enabled (API, audit, authenticator, controller, scheduler)
   
-- **Private Node Group**: 1 node in private subnet
-  - Fixed size: 1 node (min/max/desired = 1)
+- **Private Node Group**: Nodes in private subnet
+  - Configurable scaling: min/max/desired (default: 1/3/2)
   - Instance type: t3.small (configurable)
   - Label: subnet-type=private
   
-- **Public Node Group**: 1 node in public subnet (optional)
-  - Fixed size: 1 node (min/max/desired = 1)
+- **Public Node Group**: Nodes in public subnet (optional)
+  - Configurable scaling: min/max/desired (default: 1/3/2)
   - Instance type: t3.small (configurable)
   - Label: subnet-type=public
 
 #### IAM Roles
-- **Cluster Role**: 
+
+The infrastructure supports two approaches for IAM roles:
+
+**Option 1: Create Roles with Permitted Names (Default)**
+- **Cluster Role**: `eksClusterRole`
   - Policy: AmazonEKSClusterPolicy
   - Trust: eks.amazonaws.com
+  - Created automatically by Terraform if `use_eks_permitted_roles = true`
   
-- **Node Group Role**:
+- **Node Group Role**: `AmazonEKSNodeRole`
   - Policies: 
     - AmazonEKSWorkerNodePolicy
     - AmazonEKS_CNI_Policy
     - AmazonEC2ContainerRegistryReadOnly
   - Trust: ec2.amazonaws.com
+  - Created automatically by Terraform if `use_eks_permitted_roles = true`
+
+**Option 2: Use Existing Roles**
+- Provide existing role ARNs via `eks_cluster_role_arn` and `eks_node_group_role_arn`
+- Set `use_eks_permitted_roles = false`
+- Useful for restricted environments without `iam:PassRole` permission
 
 #### Security Groups
 - **Cluster Security Group**:
@@ -327,7 +339,7 @@ module "eks" {
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnet_ids
   public_subnet_ids  = module.vpc.public_subnet_ids
-  kubernetes_version = var.eks_kubernetes_version    # Default: 1.28
+  kubernetes_version = var.eks_kubernetes_version    # Default: 1.32
   node_instance_type = var.eks_node_instance_type    # Default: t3.small
   key_pair_name      = var.key_pair_name
   tags               = var.tags
@@ -423,8 +435,9 @@ module "eks" {
 
 | Role | Trust Relationship | Policies |
 |------|-------------------|----------|
-| EKS Cluster Role | eks.amazonaws.com | AmazonEKSClusterPolicy |
-| EKS Node Group Role | ec2.amazonaws.com | AmazonEKSWorkerNodePolicy<br>AmazonEKS_CNI_Policy<br>AmazonEC2ContainerRegistryReadOnly |
+| EKS Cluster Role (eksClusterRole) | eks.amazonaws.com | AmazonEKSClusterPolicy |
+| EKS Node Group Role (AmazonEKSNodeRole) | ec2.amazonaws.com | AmazonEKSWorkerNodePolicy<br>AmazonEKS_CNI_Policy<br>AmazonEC2ContainerRegistryReadOnly |
+| ASG Instance Role | ec2.amazonaws.com | CloudWatchAgentServerPolicy |
 | ASG Instance Role | ec2.amazonaws.com | CloudWatchAgentServerPolicy |
 
 ### Data Security
@@ -647,7 +660,7 @@ terraform apply
 |-----------|----------|-----------|--------------|
 | VPC | 1 | Free | $0 |
 | Internet Gateway | 1 | Free | $0 |
-| NAT Gateway | 3 | $0.045/hour + data transfer | ~$97 + data |
+| NAT Gateway | 1 | $0.045/hour + data transfer | ~$32 + data |
 | EC2 Public Instance (t3.micro) | 1 | $0.0104/hour | ~$7.50 |
 | EC2 Private Instance (t3.micro) | 1 | $0.0104/hour | ~$7.50 |
 | ASG Public (t3.micro, 1 instance) | 1 | $0.0104/hour | ~$7.50 |
@@ -796,7 +809,7 @@ terraform apply
 | `asg_max_size` | 5 | ASG maximum size |
 | `asg_desired_capacity` | 1 | ASG desired capacity |
 | `asg_cpu_target` | 60 | CPU target percentage |
-| `eks_kubernetes_version` | 1.28 | Kubernetes version |
+| `eks_kubernetes_version` | 1.32 | Kubernetes version (1.32, 1.33, 1.34) |
 | `eks_node_instance_type` | t3.small | EKS node instance type |
 
 ### B. Resource Naming Convention

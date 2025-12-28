@@ -25,10 +25,11 @@ This document contains detailed architecture diagrams for the AWS infrastructure
 │  │  │  │ Public Subnet 1     │  │  │ Public Subnet 2 │ │ │Public    │ │ │ │
 │  │  │  │ 10.0.0.0/19         │  │  │ 10.0.32.0/19   │ │ │Subnet 3  │ │ │ │
 │  │  │  │                     │  │  │                 │ │ │10.0.64/19│ │ │ │
-│  │  │  │ ┌─────────────────┐ │  │  │ ┌─────────────┐ │ │ │          │ │ │ │
-│  │  │  │ │ NAT Gateway 1   │ │  │  │ │ NAT GW 2    │ │ │ │ NAT GW 3 │ │ │ │
-│  │  │  │ │ + Elastic IP    │ │  │  │ │ + Elastic IP│ │ │ │ + EIP    │ │ │ │
-│  │  │  │ └─────────────────┘ │  │  │ │ └─────────────┘ │ │ │          │ │ │ │
+│  │  │  │ ┌─────────────────┐ │  │  │                 │ │ │          │ │ │ │
+│  │  │  │ │ NAT Gateway     │ │  │  │                 │ │ │          │ │ │ │
+│  │  │  │ │ + Elastic IP    │ │  │  │                 │ │ │          │ │ │ │
+│  │  │  │ │ (Shared by all) │ │  │  │                 │ │ │          │ │ │ │
+│  │  │  │ └─────────────────┘ │  │  │                 │ │ │          │ │ │ │
 │  │  │  │                     │  │  │                 │ │ │          │ │ │ │
 │  │  │  │ EC2 Public          │  │  │                 │ │ │          │ │ │ │
 │  │  │  │ ASG Public          │  │  │                 │ │ │          │ │ │ │
@@ -90,15 +91,17 @@ Private Subnet Resources
    │
    ▼
 ┌─────────────────────────────────────┐
-│ Private Subnet Route Table          │
+│ Private Subnet Route Tables         │
 │ Route: 0.0.0.0/0 → NAT Gateway      │
+│ (All private subnets share same NAT)│
 └─────────────────────────────────────┘
    │
-   │ (Same AZ)
+   │ (Routes to AZ-1)
    ▼
 ┌─────────────────┐
 │ NAT Gateway     │
-│ (in Public Sub) │
+│ (in Public Sub 1│
+│  Shared by all) │
 └─────────────────┘
    │
    │
@@ -391,7 +394,7 @@ Internet
 │                                                              │
 │  Development Environment:                                    │
 │  ┌──────────────────────────────────────────────────────┐  │
-│  │ - Single NAT Gateway (AZ-1)                         │  │
+│  │ - Single NAT Gateway (cost-optimized)                │  │
 │  │ - Smaller instance types (t3.micro)                 │  │
 │  │ - Reduced ASG limits (min=1, max=2)                 │  │
 │  │ - EKS disabled or minimal nodes                     │  │
@@ -399,11 +402,12 @@ Internet
 │                                                              │
 │  Production Environment:                                     │
 │  ┌──────────────────────────────────────────────────────┐  │
-│  │ - Multiple NAT Gateways (3 AZs)                      │  │
+│  │ - Single NAT Gateway (can be scaled if needed)     │  │
 │  │ - Appropriate instance types                         │  │
 │  │ - Full ASG scaling (min=2, max=10)                   │  │
 │  │ - EKS with auto-scaling                               │  │
 │  │ - Reserved Instances / Savings Plans                 │  │
+│  │ - Consider multiple NAT Gateways for HA (manual)     │  │
 │  └──────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
 ```

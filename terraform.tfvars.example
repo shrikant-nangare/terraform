@@ -1,9 +1,15 @@
 # Copy this file to terraform.tfvars and customize as needed
 
+# Basic Configuration
 aws_region = "us-east-1"
 project_name = "my-project"
 vpc_cidr = "10.0.0.0/16"
 enable_nat_gateway = true
+
+# VPC Subnet Configuration
+# Number of public and private subnets to create (one per availability zone)
+# Default: 3 (creates 3 public and 3 private subnets across 3 AZs)
+vpc_subnet_count = 3
 
 # EC2 Instance Configuration
 # Creates 1 instance in public subnet and 1 instance in private subnet
@@ -21,11 +27,9 @@ asg_desired_capacity = 1
 asg_cpu_target = 60  # CPU utilization target percentage for auto scaling
 
 # EKS Cluster Configuration
-# Creates nodes in private and public subnets based on scaling configuration
-# IMPORTANT: EKS requires existing IAM role ARNs if you don't have iam:PassRole permission
 # Set eks_cluster_name to "" (empty string) to disable EKS entirely
 eks_cluster_name = ""  # Set to cluster name to enable, or "" to disable
-eks_kubernetes_version = "1.32"  # AWS EKS standard support: 1.32, 1.33, 1.34
+eks_kubernetes_version = "1.32"  # AWS EKS standard support: 1.32, 1.33, 1.34. Extended support: 1.29, 1.30, 1.31
 eks_node_instance_type = "t3.small"
 
 # EKS Node Group Scaling Configuration
@@ -33,10 +37,25 @@ eks_node_desired_size = 2  # Desired number of nodes in each node group
 eks_node_min_size = 1      # Minimum number of nodes in each node group
 eks_node_max_size = 3      # Maximum number of nodes in each node group
 
-# EKS IAM Roles (REQUIRED if eks_cluster_name is set)
-# You MUST provide existing role ARNs - Terraform cannot create new roles without iam:PassRole permission
-# Find existing roles using: aws iam list-roles --query 'Roles[?contains(RoleName, `eks`)].Arn'
-# Or ask your AWS administrator for the role ARNs
-eks_cluster_role_arn = ""  # REQUIRED: ARN of existing EKS cluster role
-eks_node_group_role_arn = ""  # REQUIRED: ARN of existing EKS node group role
+# EKS IAM Roles Configuration
+# Option 1: Use Permitted Role Names (Recommended if allowed)
+# Terraform will create eksClusterRole and AmazonEKSNodeRole automatically
+use_eks_permitted_roles = true
+eks_cluster_role_arn = ""  # Leave empty when use_eks_permitted_roles = true
+eks_node_group_role_arn = ""  # Leave empty when use_eks_permitted_roles = true
 
+# Option 2: Use Existing Roles
+# If you don't have permission to create roles, use existing role ARNs
+# use_eks_permitted_roles = false
+# eks_cluster_role_arn = "arn:aws:iam::ACCOUNT_ID:role/eksClusterRole"
+# eks_node_group_role_arn = "arn:aws:iam::ACCOUNT_ID:role/AmazonEKSNodeRole"
+#
+# To find existing roles:
+# aws iam list-roles --query 'Roles[?contains(RoleName, `eks`) || contains(RoleName, `EKS`)].{RoleName:RoleName, Arn:Arn}' --output table
+
+# Tags (Optional)
+# tags = {
+#   Environment = "development"
+#   Team        = "platform"
+#   ManagedBy   = "terraform"
+# }
