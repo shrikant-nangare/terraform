@@ -66,13 +66,15 @@ module "asg" {
 module "eks" {
   source = "./modules/eks"
 
-  project_name       = var.project_name
-  cluster_name       = var.eks_cluster_name != "" ? var.eks_cluster_name : "${var.project_name}-cluster"
-  vpc_id             = module.vpc.vpc_id
-  private_subnet_ids = module.vpc.private_subnet_ids
-  public_subnet_ids  = module.vpc.public_subnet_ids
-  kubernetes_version = var.eks_kubernetes_version
-  node_instance_type = var.eks_node_instance_type
-  key_pair_name      = var.key_pair_name
-  tags               = var.tags
+  project_name        = var.project_name
+  cluster_name        = var.eks_cluster_name != "" ? var.eks_cluster_name : "${var.project_name}-cluster"
+  vpc_id              = module.vpc.vpc_id
+  private_subnet_ids  = module.vpc.private_subnet_ids
+  public_subnet_ids   = module.vpc.public_subnet_ids
+  kubernetes_version  = var.eks_kubernetes_version
+  node_instance_type  = var.eks_node_instance_type
+  key_pair_name       = var.key_pair_name
+  cluster_role_arn    = var.eks_cluster_role_arn
+  node_group_role_arn = var.eks_node_group_role_arn
+  tags                = var.tags
 }

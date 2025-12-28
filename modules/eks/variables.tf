@@ -102,3 +102,15 @@ variable "tags" {
   default     = {}
 }
 
+variable "cluster_role_arn" {
+  description = "ARN of existing IAM role for EKS cluster. If provided, this role will be used instead of creating a new one. Required if you don't have iam:PassRole permission for custom roles."
+  type        = string
+  default     = ""
+}
+
+variable "node_group_role_arn" {
+  description = "ARN of existing IAM role for EKS node group. If provided, this role will be used instead of creating a new one. Required if you don't have iam:PassRole permission for custom roles."
+  type        = string
+  default     = ""
+}
+

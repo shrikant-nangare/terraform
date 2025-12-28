@@ -83,6 +83,19 @@ variable "asg_cpu_target" {
   default     = 60
 }
 
+# EKS IAM Role Variables (for restricted environments)
+variable "eks_cluster_role_arn" {
+  description = "ARN of existing IAM role for EKS cluster. Leave empty to create new role. Required if you don't have iam:PassRole permission."
+  type        = string
+  default     = ""
+}
+
+variable "eks_node_group_role_arn" {
+  description = "ARN of existing IAM role for EKS node group. Leave empty to create new role. Required if you don't have iam:PassRole permission."
+  type        = string
+  default     = ""
+}
+
 # EKS Variables
 variable "eks_cluster_name" {
   description = "Name of the EKS cluster"

@@ -26,3 +26,9 @@ eks_cluster_name = "my-eks-cluster"  # Set to empty string "" to disable EKS
 eks_kubernetes_version = "1.28"
 eks_node_instance_type = "t3.small"
 
+# EKS IAM Roles (for restricted environments)
+# If you don't have iam:PassRole permission, provide existing role ARNs here
+# Leave empty to create new roles (requires iam:PassRole permission)
+# eks_cluster_role_arn = "arn:aws:iam::ACCOUNT_ID:role/eksClusterRole"
+# eks_node_group_role_arn = "arn:aws:iam::ACCOUNT_ID:role/AmazonEKSNodeRole"
+

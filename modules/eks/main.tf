@@ -1,6 +1,7 @@
-# IAM Role for EKS Cluster
+# IAM Role for EKS Cluster (only create if existing role not provided)
 resource "aws_iam_role" "cluster" {
-  name = "${var.project_name}-eks-cluster-role"
+  count = var.cluster_role_arn == "" ? 1 : 0
+  name  = "${var.project_name}-eks-cluster-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -25,13 +26,20 @@ resource "aws_iam_role" "cluster" {
 
 # Attach AWS managed policy for EKS cluster
 resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSClusterPolicy" {
+  count      = var.cluster_role_arn == "" ? 1 : 0
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = aws_iam_role.cluster.name
+  role       = aws_iam_role.cluster[0].name
 }
 
-# IAM Role for EKS Node Group
+# Local value to get cluster role ARN (either existing or created)
+locals {
+  cluster_role_arn = var.cluster_role_arn != "" ? var.cluster_role_arn : aws_iam_role.cluster[0].arn
+}
+
+# IAM Role for EKS Node Group (only create if existing role not provided)
 resource "aws_iam_role" "node_group" {
-  name = "${var.project_name}-eks-node-group-role"
+  count = var.node_group_role_arn == "" ? 1 : 0
+  name  = "${var.project_name}-eks-node-group-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -56,18 +64,26 @@ resource "aws_iam_role" "node_group" {
 
 # Attach AWS managed policies for EKS node group
 resource "aws_iam_role_policy_attachment" "node_group_AmazonEKSWorkerNodePolicy" {
+  count      = var.node_group_role_arn == "" ? 1 : 0
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-  role       = aws_iam_role.node_group.name
+  role       = aws_iam_role.node_group[0].name
 }
 
 resource "aws_iam_role_policy_attachment" "node_group_AmazonEKS_CNI_Policy" {
+  count      = var.node_group_role_arn == "" ? 1 : 0
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-  role       = aws_iam_role.node_group.name
+  role       = aws_iam_role.node_group[0].name
 }
 
 resource "aws_iam_role_policy_attachment" "node_group_AmazonEC2ContainerRegistryReadOnly" {
+  count      = var.node_group_role_arn == "" ? 1 : 0
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-  role       = aws_iam_role.node_group.name
+  role       = aws_iam_role.node_group[0].name
+}
+
+# Local value to get node group role ARN (either existing or created)
+locals {
+  node_group_role_arn = var.node_group_role_arn != "" ? var.node_group_role_arn : aws_iam_role.node_group[0].arn
 }
 
 # Security Group for EKS Cluster
@@ -206,7 +222,7 @@ resource "aws_security_group_rule" "cluster_ingress_public_nodes" {
 # EKS Cluster
 resource "aws_eks_cluster" "main" {
   name     = var.cluster_name
-  role_arn = aws_iam_role.cluster.arn
+  role_arn = local.cluster_role_arn
   version  = var.kubernetes_version
 
   vpc_config {
@@ -219,9 +235,10 @@ resource "aws_eks_cluster" "main" {
 
   enabled_cluster_log_types = var.enabled_cluster_log_types
 
-  depends_on = [
-    aws_iam_role_policy_attachment.cluster_AmazonEKSClusterPolicy,
-  ]
+  # Only depend on policy attachment if we're creating the role (not using existing)
+  depends_on = var.cluster_role_arn == "" ? [
+    aws_iam_role_policy_attachment.cluster_AmazonEKSClusterPolicy[0],
+  ] : []
 
   tags = merge(
     var.tags,
@@ -240,7 +257,7 @@ resource "aws_eks_cluster" "main" {
 resource "aws_eks_node_group" "private" {
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = "${var.cluster_name}-private-node-group"
-  node_role_arn   = aws_iam_role.node_group.arn
+  node_role_arn   = local.node_group_role_arn
   subnet_ids      = [var.private_subnet_ids[0]]  # Use first private subnet
   instance_types  = [var.node_instance_type]
 
@@ -274,11 +291,12 @@ resource "aws_eks_node_group" "private" {
     }
   )
 
-  depends_on = [
-    aws_iam_role_policy_attachment.node_group_AmazonEKSWorkerNodePolicy,
-    aws_iam_role_policy_attachment.node_group_AmazonEKS_CNI_Policy,
-    aws_iam_role_policy_attachment.node_group_AmazonEC2ContainerRegistryReadOnly,
-  ]
+  # Only depend on policy attachments if we're creating the role (not using existing)
+  depends_on = var.node_group_role_arn == "" ? [
+    aws_iam_role_policy_attachment.node_group_AmazonEKSWorkerNodePolicy[0],
+    aws_iam_role_policy_attachment.node_group_AmazonEKS_CNI_Policy[0],
+    aws_iam_role_policy_attachment.node_group_AmazonEC2ContainerRegistryReadOnly[0],
+  ] : []
 }
 
 # EKS Public Node Group (1 node in public subnet)
@@ -286,7 +304,7 @@ resource "aws_eks_node_group" "public" {
   count           = length(var.public_subnet_ids) > 0 ? 1 : 0
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = "${var.cluster_name}-public-node-group"
-  node_role_arn   = aws_iam_role.node_group.arn
+  node_role_arn   = local.node_group_role_arn
   subnet_ids      = [var.public_subnet_ids[0]]  # Use first public subnet
   instance_types  = [var.node_instance_type]
 
@@ -320,10 +338,11 @@ resource "aws_eks_node_group" "public" {
     }
   )
 
-  depends_on = [
-    aws_iam_role_policy_attachment.node_group_AmazonEKSWorkerNodePolicy,
-    aws_iam_role_policy_attachment.node_group_AmazonEKS_CNI_Policy,
-    aws_iam_role_policy_attachment.node_group_AmazonEC2ContainerRegistryReadOnly,
-  ]
+  # Only depend on policy attachments if we're creating the role (not using existing)
+  depends_on = var.node_group_role_arn == "" ? [
+    aws_iam_role_policy_attachment.node_group_AmazonEKSWorkerNodePolicy[0],
+    aws_iam_role_policy_attachment.node_group_AmazonEKS_CNI_Policy[0],
+    aws_iam_role_policy_attachment.node_group_AmazonEC2ContainerRegistryReadOnly[0],
+  ] : []
 }
 

@@ -65,12 +65,12 @@ output "node_group_security_group_id" {
 
 output "cluster_iam_role_arn" {
   description = "IAM role ARN of the EKS cluster"
-  value       = aws_iam_role.cluster.arn
+  value       = local.cluster_role_arn
 }
 
 output "node_group_iam_role_arn" {
   description = "IAM role ARN of the EKS node group"
-  value       = aws_iam_role.node_group.arn
+  value       = local.node_group_role_arn
 }
 
 output "cluster_certificate_authority_data" {
