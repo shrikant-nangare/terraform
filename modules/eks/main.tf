@@ -221,7 +221,6 @@ resource "aws_eks_cluster" "main" {
 
   depends_on = [
     aws_iam_role_policy_attachment.cluster_AmazonEKSClusterPolicy,
-    aws_cloudwatch_log_group.cluster,
   ]
 
   tags = merge(
@@ -232,27 +231,10 @@ resource "aws_eks_cluster" "main" {
   )
 }
 
-# CloudWatch Log Group for EKS Cluster
-resource "aws_cloudwatch_log_group" "cluster" {
-  name = "/aws/eks/${var.cluster_name}/cluster"
-  # Note: retention_in_days removed to avoid permission issues
-  # If you have logs:PutRetentionPolicy permission, you can set retention via AWS Console or CLI
-  # Example: aws logs put-retention-policy --log-group-name /aws/eks/${var.cluster_name}/cluster --retention-in-days 7
-
-  tags = merge(
-    var.tags,
-    {
-      Name = "${var.cluster_name}-logs"
-    }
-  )
-
-  lifecycle {
-    ignore_changes = [retention_in_days]
-    # Prevent deletion to avoid permission issues
-    # If you need to delete the log group, do it manually via AWS Console or CLI
-    prevent_destroy = true
-  }
-}
+# Note: CloudWatch Log Group is automatically created by EKS when enabled_cluster_log_types is set
+# We don't manage it via Terraform to avoid permission issues (logs:PutRetentionPolicy, logs:DeleteLogGroup)
+# The log group will be created at: /aws/eks/${var.cluster_name}/cluster
+# If you need to manage retention, do it via AWS Console or CLI after the cluster is created
 
 # EKS Private Node Group (1 node in private subnet)
 resource "aws_eks_node_group" "private" {
