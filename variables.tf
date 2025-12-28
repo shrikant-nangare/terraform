@@ -116,13 +116,31 @@ variable "eks_cluster_name" {
 }
 
 variable "eks_kubernetes_version" {
-  description = "Kubernetes version for the EKS cluster"
+  description = "Kubernetes version for the EKS cluster. AWS EKS standard support: 1.32, 1.33, 1.34. Extended support: 1.29, 1.30, 1.31"
   type        = string
-  default     = "1.28"
+  default     = "1.32"
 }
 
 variable "eks_node_instance_type" {
   description = "EC2 instance type for EKS node groups (1 node in private subnet, 1 node in public subnet)"
   type        = string
   default     = "t3.small"
+}
+
+variable "eks_node_desired_size" {
+  description = "Desired number of nodes in each EKS node group"
+  type        = number
+  default     = 2
+}
+
+variable "eks_node_min_size" {
+  description = "Minimum number of nodes in each EKS node group"
+  type        = number
+  default     = 1
+}
+
+variable "eks_node_max_size" {
+  description = "Maximum number of nodes in each EKS node group"
+  type        = number
+  default     = 3
 }

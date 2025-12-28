@@ -25,9 +25,9 @@ variable "public_subnet_ids" {
 }
 
 variable "kubernetes_version" {
-  description = "Kubernetes version for the EKS cluster"
+  description = "Kubernetes version for the EKS cluster. AWS EKS standard support: 1.32, 1.33, 1.34. Extended support: 1.29, 1.30, 1.31"
   type        = string
-  default     = "1.28"
+  default     = "1.32"
 }
 
 variable "node_instance_type" {
