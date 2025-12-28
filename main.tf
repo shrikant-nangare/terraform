@@ -94,9 +94,18 @@ resource "aws_iam_role_policy_attachment" "eks_node_registry_policy" {
 }
 
 # Local values for EKS role ARNs
+# If use_eks_permitted_roles is true, use the roles created in root module
+# Otherwise, use the provided ARNs (or empty string to let EKS module create them)
 locals {
-  eks_cluster_role_arn = var.eks_cluster_name != "" && var.use_eks_permitted_roles ? aws_iam_role.eks_cluster[0].arn : var.eks_cluster_role_arn
-  eks_node_group_role_arn = var.eks_cluster_name != "" && var.use_eks_permitted_roles ? aws_iam_role.eks_node_group[0].arn : var.eks_node_group_role_arn
+  # When use_eks_permitted_roles is true, use the root module's roles
+  # When false, use the provided ARNs from variables
+  eks_cluster_role_arn = var.use_eks_permitted_roles && var.eks_cluster_name != "" ? (
+    try(aws_iam_role.eks_cluster[0].arn, var.eks_cluster_role_arn)
+  ) : var.eks_cluster_role_arn
+  
+  eks_node_group_role_arn = var.use_eks_permitted_roles && var.eks_cluster_name != "" ? (
+    try(aws_iam_role.eks_node_group[0].arn, var.eks_node_group_role_arn)
+  ) : var.eks_node_group_role_arn
 }
 
 # VPC Module
