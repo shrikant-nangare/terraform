@@ -22,13 +22,16 @@ asg_cpu_target = 60  # CPU utilization target percentage for auto scaling
 
 # EKS Cluster Configuration
 # Creates 1 node in private subnet and 1 node in public subnet
-eks_cluster_name = "my-eks-cluster"  # Set to empty string "" to disable EKS
+# IMPORTANT: EKS requires existing IAM role ARNs if you don't have iam:PassRole permission
+# Set eks_cluster_name to "" (empty string) to disable EKS entirely
+eks_cluster_name = ""  # Set to cluster name to enable, or "" to disable
 eks_kubernetes_version = "1.28"
 eks_node_instance_type = "t3.small"
 
-# EKS IAM Roles (for restricted environments)
-# If you don't have iam:PassRole permission, provide existing role ARNs here
-# Leave empty to create new roles (requires iam:PassRole permission)
-# eks_cluster_role_arn = "arn:aws:iam::ACCOUNT_ID:role/eksClusterRole"
-# eks_node_group_role_arn = "arn:aws:iam::ACCOUNT_ID:role/AmazonEKSNodeRole"
+# EKS IAM Roles (REQUIRED if eks_cluster_name is set)
+# You MUST provide existing role ARNs - Terraform cannot create new roles without iam:PassRole permission
+# Find existing roles using: aws iam list-roles --query 'Roles[?contains(RoleName, `eks`)].Arn'
+# Or ask your AWS administrator for the role ARNs
+eks_cluster_role_arn = ""  # REQUIRED: ARN of existing EKS cluster role
+eks_node_group_role_arn = ""  # REQUIRED: ARN of existing EKS node group role
 

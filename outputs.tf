@@ -104,38 +104,38 @@ output "private_security_group_id" {
   value       = module.ec2.private_security_group_id
 }
 
-# EKS Outputs
+# EKS Outputs (only output if EKS module is created)
 output "eks_cluster_id" {
   description = "ID of the EKS cluster"
-  value       = module.eks.cluster_id
+  value       = length(module.eks) > 0 ? module.eks[0].cluster_id : null
 }
 
 output "eks_cluster_arn" {
   description = "ARN of the EKS cluster"
-  value       = module.eks.cluster_arn
+  value       = length(module.eks) > 0 ? module.eks[0].cluster_arn : null
 }
 
 output "eks_cluster_name" {
   description = "Name of the EKS cluster"
-  value       = module.eks.cluster_name
+  value       = length(module.eks) > 0 ? module.eks[0].cluster_name : null
 }
 
 output "eks_cluster_endpoint" {
   description = "Endpoint for EKS control plane"
-  value       = module.eks.cluster_endpoint
+  value       = length(module.eks) > 0 ? module.eks[0].cluster_endpoint : null
 }
 
 output "eks_cluster_version" {
   description = "Kubernetes version of the EKS cluster"
-  value       = module.eks.cluster_version
+  value       = length(module.eks) > 0 ? module.eks[0].cluster_version : null
 }
 
 output "eks_private_node_group_id" {
   description = "ID of the EKS private node group"
-  value       = module.eks.private_node_group_id
+  value       = length(module.eks) > 0 ? module.eks[0].private_node_group_id : null
 }
 
 output "eks_public_node_group_id" {
   description = "ID of the EKS public node group"
-  value       = module.eks.public_node_group_id
+  value       = length(module.eks) > 0 ? module.eks[0].public_node_group_id : null
 }

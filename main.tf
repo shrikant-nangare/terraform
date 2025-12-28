@@ -62,12 +62,14 @@ module "asg" {
   tags                    = var.tags
 }
 
-# EKS Module
+# EKS Module (only create if cluster_name is provided and role ARNs are provided)
+# Note: EKS requires iam:PassRole permission. If you don't have this, you must provide existing role ARNs.
 module "eks" {
   source = "./modules/eks"
+  count  = var.eks_cluster_name != "" && var.eks_cluster_role_arn != "" && var.eks_node_group_role_arn != "" ? 1 : 0
 
   project_name        = var.project_name
-  cluster_name        = var.eks_cluster_name != "" ? var.eks_cluster_name : "${var.project_name}-cluster"
+  cluster_name        = var.eks_cluster_name
   vpc_id              = module.vpc.vpc_id
   private_subnet_ids  = module.vpc.private_subnet_ids
   public_subnet_ids   = module.vpc.public_subnet_ids
