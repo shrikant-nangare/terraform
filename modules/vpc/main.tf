@@ -28,7 +28,8 @@ resource "aws_internet_gateway" "main" {
 locals {
   # Calculate number of bits needed for subnet_count * 2 subnets (public + private)
   # Formula: ceil(log2(subnet_count * 2))
-  subnet_bits = ceil(log(var.subnet_count * 2) / log(2))
+  # Terraform log function: log(num, base)
+  subnet_bits = ceil(log(var.subnet_count * 2, 2))
 }
 
 # Public Subnets
