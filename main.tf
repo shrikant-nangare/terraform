@@ -102,22 +102,22 @@ resource "aws_iam_role_policy_attachment" "eks_node_registry_policy" {
 locals {
   # Get current AWS account ID
   current_account_id = data.aws_caller_identity.current.account_id
-  
+
   # Construct role ARN from role name if only role name is provided (not full ARN)
   # If var.eks_cluster_role_arn starts with "arn:", use it as-is
   # Otherwise, treat it as a role name and construct the ARN
   eks_cluster_role_arn = var.use_eks_permitted_roles && var.eks_cluster_name != "" ? (
     try(aws_iam_role.eks_cluster[0].arn, "")
-  ) : (
+    ) : (
     var.eks_cluster_role_arn != "" ? (
       startswith(var.eks_cluster_role_arn, "arn:") ? var.eks_cluster_role_arn : "arn:aws:iam::${local.current_account_id}:role/${var.eks_cluster_role_arn}"
     ) : ""
   )
-  
+
   # Same logic for node group role
   eks_node_group_role_arn = var.use_eks_permitted_roles && var.eks_cluster_name != "" ? (
     try(aws_iam_role.eks_node_group[0].arn, "")
-  ) : (
+    ) : (
     var.eks_node_group_role_arn != "" ? (
       startswith(var.eks_node_group_role_arn, "arn:") ? var.eks_node_group_role_arn : "arn:aws:iam::${local.current_account_id}:role/${var.eks_node_group_role_arn}"
     ) : ""
@@ -155,19 +155,19 @@ module "ec2" {
 module "asg" {
   source = "./modules/asg"
 
-  project_name            = var.project_name
-  public_subnet_id        = module.vpc.public_subnet_ids[0]
-  private_subnet_id       = module.vpc.private_subnet_ids[0]
+  project_name              = var.project_name
+  public_subnet_id          = module.vpc.public_subnet_ids[0]
+  private_subnet_id         = module.vpc.private_subnet_ids[0]
   public_security_group_id  = module.ec2.public_security_group_id
   private_security_group_id = module.ec2.private_security_group_id
-  instance_type           = var.asg_instance_type
-  key_pair_name           = var.key_pair_name
-  min_size                = var.asg_min_size
-  max_size                = var.asg_max_size
-  desired_capacity        = var.asg_desired_capacity
-  cpu_target              = var.asg_cpu_target
-  user_data               = var.user_data
-  tags                    = var.tags
+  instance_type             = var.asg_instance_type
+  key_pair_name             = var.key_pair_name
+  min_size                  = var.asg_min_size
+  max_size                  = var.asg_max_size
+  desired_capacity          = var.asg_desired_capacity
+  cpu_target                = var.asg_cpu_target
+  user_data                 = var.user_data
+  tags                      = var.tags
 }
 
 # EKS Module (only create if cluster_name is provided)

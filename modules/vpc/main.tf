@@ -85,7 +85,7 @@ resource "aws_eip" "nat" {
 resource "aws_nat_gateway" "main" {
   count         = var.enable_nat_gateway ? 1 : 0
   allocation_id = aws_eip.nat[0].id
-  subnet_id     = aws_subnet.public[0].id  # Place in first public subnet
+  subnet_id     = aws_subnet.public[0].id # Place in first public subnet
 
   tags = merge(
     var.tags,
@@ -131,7 +131,7 @@ resource "aws_route_table" "private" {
     for_each = var.enable_nat_gateway ? [1] : []
     content {
       cidr_block     = "0.0.0.0/0"
-      nat_gateway_id = aws_nat_gateway.main[0].id  # All use the same single NAT Gateway
+      nat_gateway_id = aws_nat_gateway.main[0].id # All use the same single NAT Gateway
     }
   }
 

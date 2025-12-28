@@ -162,12 +162,12 @@ resource "aws_launch_template" "private" {
 
 # Auto Scaling Group for Public Subnet
 resource "aws_autoscaling_group" "public" {
-  name                = "${var.project_name}-public-asg"
-  vpc_zone_identifier = [var.public_subnet_id]
-  min_size            = var.min_size
-  max_size            = var.max_size
-  desired_capacity    = var.desired_capacity
-  health_check_type   = "EC2"
+  name                      = "${var.project_name}-public-asg"
+  vpc_zone_identifier       = [var.public_subnet_id]
+  min_size                  = var.min_size
+  max_size                  = var.max_size
+  desired_capacity          = var.desired_capacity
+  health_check_type         = "EC2"
   health_check_grace_period = 300
 
   launch_template {
@@ -193,12 +193,12 @@ resource "aws_autoscaling_group" "public" {
 
 # Auto Scaling Group for Private Subnet
 resource "aws_autoscaling_group" "private" {
-  name                = "${var.project_name}-private-asg"
-  vpc_zone_identifier = [var.private_subnet_id]
-  min_size            = var.min_size
-  max_size            = var.max_size
-  desired_capacity    = var.desired_capacity
-  health_check_type   = "EC2"
+  name                      = "${var.project_name}-private-asg"
+  vpc_zone_identifier       = [var.private_subnet_id]
+  min_size                  = var.min_size
+  max_size                  = var.max_size
+  desired_capacity          = var.desired_capacity
+  health_check_type         = "EC2"
   health_check_grace_period = 300
 
   launch_template {
