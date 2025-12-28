@@ -1,26 +1,26 @@
-output "public_instance_ids" {
-  description = "IDs of the EC2 instances in public subnets"
-  value       = aws_instance.public[*].id
+output "public_instance_id" {
+  description = "ID of the EC2 instance in public subnet"
+  value       = aws_instance.public.id
 }
 
-output "private_instance_ids" {
-  description = "IDs of the EC2 instances in private subnets"
-  value       = aws_instance.private[*].id
+output "private_instance_id" {
+  description = "ID of the EC2 instance in private subnet"
+  value       = aws_instance.private.id
 }
 
-output "public_instance_private_ips" {
-  description = "Private IP addresses of the EC2 instances in public subnets"
-  value       = aws_instance.public[*].private_ip
+output "public_instance_private_ip" {
+  description = "Private IP address of the EC2 instance in public subnet"
+  value       = aws_instance.public.private_ip
 }
 
-output "private_instance_private_ips" {
-  description = "Private IP addresses of the EC2 instances in private subnets"
-  value       = aws_instance.private[*].private_ip
+output "private_instance_private_ip" {
+  description = "Private IP address of the EC2 instance in private subnet"
+  value       = aws_instance.private.private_ip
 }
 
-output "public_instance_public_ips" {
-  description = "Public IP addresses of the EC2 instances in public subnets"
-  value       = aws_instance.public[*].public_ip
+output "public_instance_public_ip" {
+  description = "Public IP address of the EC2 instance in public subnet"
+  value       = aws_instance.public.public_ip
 }
 
 output "public_security_group_id" {

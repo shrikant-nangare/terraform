@@ -48,29 +48,50 @@ output "private_route_table_ids" {
   value       = module.vpc.private_route_table_ids
 }
 
-output "public_instance_ids" {
-  description = "IDs of the EC2 instances in public subnets"
-  value       = module.ec2.public_instance_ids
+output "public_instance_id" {
+  description = "ID of the EC2 instance in public subnet"
+  value       = module.ec2.public_instance_id
 }
 
-output "private_instance_ids" {
-  description = "IDs of the EC2 instances in private subnets"
-  value       = module.ec2.private_instance_ids
+output "private_instance_id" {
+  description = "ID of the EC2 instance in private subnet"
+  value       = module.ec2.private_instance_id
 }
 
-output "public_instance_private_ips" {
-  description = "Private IP addresses of the EC2 instances in public subnets"
-  value       = module.ec2.public_instance_private_ips
+output "public_instance_private_ip" {
+  description = "Private IP address of the EC2 instance in public subnet"
+  value       = module.ec2.public_instance_private_ip
 }
 
-output "private_instance_private_ips" {
-  description = "Private IP addresses of the EC2 instances in private subnets"
-  value       = module.ec2.private_instance_private_ips
+output "private_instance_private_ip" {
+  description = "Private IP address of the EC2 instance in private subnet"
+  value       = module.ec2.private_instance_private_ip
 }
 
-output "public_instance_public_ips" {
-  description = "Public IP addresses of the EC2 instances in public subnets"
-  value       = module.ec2.public_instance_public_ips
+output "public_instance_public_ip" {
+  description = "Public IP address of the EC2 instance in public subnet"
+  value       = module.ec2.public_instance_public_ip
+}
+
+# ASG Outputs
+output "public_asg_id" {
+  description = "ID of the public Auto Scaling Group"
+  value       = module.asg.public_asg_id
+}
+
+output "public_asg_name" {
+  description = "Name of the public Auto Scaling Group"
+  value       = module.asg.public_asg_name
+}
+
+output "private_asg_id" {
+  description = "ID of the private Auto Scaling Group"
+  value       = module.asg.private_asg_id
+}
+
+output "private_asg_name" {
+  description = "Name of the private Auto Scaling Group"
+  value       = module.asg.private_asg_name
 }
 
 output "public_security_group_id" {
