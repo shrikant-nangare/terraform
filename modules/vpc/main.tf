@@ -24,11 +24,18 @@ resource "aws_internet_gateway" "main" {
   )
 }
 
+# Local value to calculate subnet bits needed
+locals {
+  # Calculate number of bits needed for subnet_count * 2 subnets (public + private)
+  # Formula: ceil(log2(subnet_count * 2))
+  subnet_bits = ceil(log(var.subnet_count * 2) / log(2))
+}
+
 # Public Subnets
 resource "aws_subnet" "public" {
-  count                   = 3
+  count                   = var.subnet_count
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = cidrsubnet(var.vpc_cidr, 3, count.index)
+  cidr_block              = cidrsubnet(var.vpc_cidr, local.subnet_bits, count.index)
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = true
 
@@ -43,9 +50,9 @@ resource "aws_subnet" "public" {
 
 # Private Subnets
 resource "aws_subnet" "private" {
-  count                   = 3
+  count                   = var.subnet_count
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = cidrsubnet(var.vpc_cidr, 3, count.index + 3)
+  cidr_block              = cidrsubnet(var.vpc_cidr, local.subnet_bits, count.index + var.subnet_count)
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = false
 
@@ -60,7 +67,7 @@ resource "aws_subnet" "private" {
 
 # Elastic IPs for NAT Gateways
 resource "aws_eip" "nat" {
-  count  = var.enable_nat_gateway ? 3 : 0
+  count  = var.enable_nat_gateway ? var.subnet_count : 0
   domain = "vpc"
 
   tags = merge(
@@ -75,7 +82,7 @@ resource "aws_eip" "nat" {
 
 # NAT Gateways (one per public subnet)
 resource "aws_nat_gateway" "main" {
-  count         = var.enable_nat_gateway ? 3 : 0
+  count         = var.enable_nat_gateway ? var.subnet_count : 0
   allocation_id = aws_eip.nat[count.index].id
   subnet_id     = aws_subnet.public[count.index].id
 
@@ -108,14 +115,14 @@ resource "aws_route_table" "public" {
 
 # Route Table Associations for Public Subnets
 resource "aws_route_table_association" "public" {
-  count          = 3
+  count          = var.subnet_count
   subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
 }
 
 # Route Tables for Private Subnets
 resource "aws_route_table" "private" {
-  count  = var.enable_nat_gateway ? 3 : 3
+  count  = var.subnet_count
   vpc_id = aws_vpc.main.id
 
   dynamic "route" {
@@ -136,7 +143,7 @@ resource "aws_route_table" "private" {
 
 # Route Table Associations for Private Subnets
 resource "aws_route_table_association" "private" {
-  count          = 3
+  count          = var.subnet_count
   subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private[count.index].id
 }

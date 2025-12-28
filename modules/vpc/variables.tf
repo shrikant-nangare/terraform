@@ -20,3 +20,13 @@ variable "tags" {
   default     = {}
 }
 
+variable "subnet_count" {
+  description = "Number of public and private subnets to create (one per availability zone)"
+  type        = number
+  default     = 3
+  validation {
+    condition     = var.subnet_count >= 1 && var.subnet_count <= 6
+    error_message = "Subnet count must be between 1 and 6 (AWS typically has 3-6 availability zones per region)."
+  }
+}
+

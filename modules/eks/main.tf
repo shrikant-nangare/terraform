@@ -257,9 +257,9 @@ resource "aws_eks_node_group" "private" {
   instance_types  = [var.node_instance_type]
 
   scaling_config {
-    desired_size = 1
-    max_size     = 1
-    min_size     = 1
+    desired_size = var.node_desired_size
+    max_size     = var.node_max_size
+    min_size     = var.node_min_size
   }
 
   update_config {
@@ -300,9 +300,9 @@ resource "aws_eks_node_group" "public" {
   instance_types  = [var.node_instance_type]
 
   scaling_config {
-    desired_size = 1
-    max_size     = 1
-    min_size     = 1
+    desired_size = var.node_desired_size
+    max_size     = var.node_max_size
+    min_size     = var.node_min_size
   }
 
   update_config {

@@ -22,6 +22,12 @@ variable "enable_nat_gateway" {
   default     = true
 }
 
+variable "vpc_subnet_count" {
+  description = "Number of public and private subnets to create (one per availability zone)"
+  type        = number
+  default     = 3
+}
+
 variable "tags" {
   description = "A map of tags to assign to all resources"
   type        = map(string)

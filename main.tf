@@ -24,6 +24,7 @@ module "vpc" {
   project_name       = var.project_name
   vpc_cidr           = var.vpc_cidr
   enable_nat_gateway = var.enable_nat_gateway
+  subnet_count       = var.vpc_subnet_count
   tags               = var.tags
 }
 
