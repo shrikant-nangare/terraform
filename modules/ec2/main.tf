@@ -107,6 +107,12 @@ resource "aws_instance" "public" {
   key_name               = var.key_pair_name != "" ? var.key_pair_name : null
   user_data              = var.user_data != "" ? var.user_data : null
 
+  root_block_device {
+    volume_type = "gp3"
+    volume_size = 6
+    encrypted   = true
+  }
+
   tags = merge(
     var.tags,
     {
@@ -124,6 +130,12 @@ resource "aws_instance" "private" {
   vpc_security_group_ids = [aws_security_group.private_instances.id]
   key_name               = var.key_pair_name != "" ? var.key_pair_name : null
   user_data              = var.user_data != "" ? var.user_data : null
+
+  root_block_device {
+    volume_type = "gp3"
+    volume_size = 6
+    encrypted   = true
+  }
 
   tags = merge(
     var.tags,

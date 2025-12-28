@@ -255,6 +255,7 @@ resource "aws_eks_node_group" "private" {
   node_role_arn   = local.node_group_role_arn
   subnet_ids      = [var.private_subnet_ids[0]]  # Use first private subnet
   instance_types  = [var.node_instance_type]
+  disk_size       = 6
 
   scaling_config {
     desired_size = var.node_desired_size
@@ -298,6 +299,7 @@ resource "aws_eks_node_group" "public" {
   node_role_arn   = local.node_group_role_arn
   subnet_ids      = [var.public_subnet_ids[0]]  # Use first public subnet
   instance_types  = [var.node_instance_type]
+  disk_size       = 6
 
   scaling_config {
     desired_size = var.node_desired_size

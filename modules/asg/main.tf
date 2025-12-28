@@ -71,6 +71,16 @@ resource "aws_launch_template" "public" {
     name = aws_iam_instance_profile.asg.name
   }
 
+  block_device_mappings {
+    device_name = "/dev/xvda"
+    ebs {
+      volume_type           = "gp3"
+      volume_size           = 6
+      encrypted             = true
+      delete_on_termination = true
+    }
+  }
+
   user_data = base64encode(var.user_data != "" ? var.user_data : <<-EOF
     #!/bin/bash
     yum update -y
@@ -110,6 +120,16 @@ resource "aws_launch_template" "private" {
 
   iam_instance_profile {
     name = aws_iam_instance_profile.asg.name
+  }
+
+  block_device_mappings {
+    device_name = "/dev/xvda"
+    ebs {
+      volume_type           = "gp3"
+      volume_size           = 6
+      encrypted             = true
+      delete_on_termination = true
+    }
   }
 
   user_data = base64encode(var.user_data != "" ? var.user_data : <<-EOF

@@ -198,7 +198,7 @@ eks_cluster_role_arn = "arn:aws:iam::ACCOUNT_ID:role/eksClusterRole"
 eks_node_group_role_arn = "arn:aws:iam::ACCOUNT_ID:role/AmazonEKSNodeRole"
 ```
 
-See [EKS_ROLES_SETUP.md](./EKS_ROLES_SETUP.md) for detailed instructions.
+See [EKS_ROLES_SETUP.md](./docs/EKS_ROLES_SETUP.md) for detailed instructions.
 
 ## Outputs
 
@@ -265,9 +265,9 @@ Deploys managed Kubernetes cluster:
 ## EKS Setup
 
 To enable EKS, you need to configure IAM roles. See the following guides:
-- [EKS_ROLES_SETUP.md](./EKS_ROLES_SETUP.md) - IAM roles setup
-- [EKS_SETUP_GUIDE.md](./EKS_SETUP_GUIDE.md) - Complete setup guide
-- [ENABLE_EKS_STEPS.md](./ENABLE_EKS_STEPS.md) - Step-by-step enablement
+- [EKS_ROLES_SETUP.md](./docs/EKS_ROLES_SETUP.md) - IAM roles setup
+- [EKS_SETUP_GUIDE.md](./docs/EKS_SETUP_GUIDE.md) - Complete setup guide
+- [ENABLE_EKS_STEPS.md](./docs/ENABLE_EKS_STEPS.md) - Step-by-step enablement
 
 ## Cost Considerations
 
@@ -297,14 +297,14 @@ Estimated monthly costs (us-east-1, approximate):
 ### Common Issues
 
 **AWS Permission Errors (403 AccessDenied)**
-- **Quick Fix**: Run `./fix-terraform-permissions.sh` to attach required policies
-- **Detailed Guide**: See [FIX_TERRAFORM_PERMISSIONS.md](./FIX_TERRAFORM_PERMISSIONS.md)
+- **Quick Fix**: Run `./scripts/fix-terraform-permissions.sh` to attach required policies
+- **Detailed Guide**: See [FIX_TERRAFORM_PERMISSIONS.md](./docs/FIX_TERRAFORM_PERMISSIONS.md)
 - Common errors: `autoscaling:UpdateAutoScalingGroup`, `eks:CreateCluster`, `ec2:CreateNatGateway`
 - Required policies: EC2, Auto Scaling, EKS, IAM, CloudWatch
 
 **EKS IAM Permission Errors**
-- See [FIX_EKS_IAM_ERROR.md](./FIX_EKS_IAM_ERROR.md)
-- See [FIX_EKS_UPDATE_PERMISSION.md](./FIX_EKS_UPDATE_PERMISSION.md) for cluster update permissions
+- See [FIX_EKS_IAM_ERROR.md](./docs/FIX_EKS_IAM_ERROR.md)
+- See [FIX_EKS_UPDATE_PERMISSION.md](./docs/FIX_EKS_UPDATE_PERMISSION.md) for cluster update permissions
 - Ensure you have existing roles or permission to create roles
 
 **NAT Gateway Not Accessible**
@@ -324,18 +324,21 @@ Estimated monthly costs (us-east-1, approximate):
 
 ## Additional Documentation
 
-- [ARCHITECTURE_DIAGRAMS.md](./ARCHITECTURE_DIAGRAMS.md) - Architecture diagrams
-- [HLD_ARCHITECTURE_PLAN.md](./HLD_ARCHITECTURE_PLAN.md) - High-level design
-- [BEST_PRACTICES_ANALYSIS.md](./BEST_PRACTICES_ANALYSIS.md) - Best practices review
-- [MODULARIZATION_REVIEW.md](./MODULARIZATION_REVIEW.md) - Module structure review
-- [VERSION_HISTORY.md](./VERSION_HISTORY.md) - Change history
+- [ARCHITECTURE_DIAGRAMS.md](./docs/ARCHITECTURE_DIAGRAMS.md) - Architecture diagrams
+- [HLD_ARCHITECTURE_PLAN.md](./docs/HLD_ARCHITECTURE_PLAN.md) - High-level design
+- [BEST_PRACTICES_ANALYSIS.md](./docs/BEST_PRACTICES_ANALYSIS.md) - Best practices review
+- [MODULARIZATION_REVIEW.md](./docs/MODULARIZATION_REVIEW.md) - Module structure review
+- [VERSION_HISTORY.md](./docs/VERSION_HISTORY.md) - Change history
+- [AWS_RESOURCE_LIMITS.md](./docs/AWS_RESOURCE_LIMITS.md) - Instance type and EBS limits
+- [DESTROY_AND_RECREATE.md](./docs/DESTROY_AND_RECREATE.md) - Guide for destroying and recreating infrastructure
+- [IMPORT_EXISTING_ROLES.md](./docs/IMPORT_EXISTING_ROLES.md) - Guide for importing existing IAM roles
 
 ## Contributing
 
 When making changes:
 1. Update relevant documentation
 2. Test changes in a development environment
-3. Update `VERSION_HISTORY.md` with changes
+3. Update `docs/VERSION_HISTORY.md` with changes
 4. Follow Terraform best practices
 
 ## License
