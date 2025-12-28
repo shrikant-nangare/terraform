@@ -66,31 +66,31 @@ resource "aws_subnet" "private" {
   )
 }
 
-# Elastic IPs for NAT Gateways
+# Elastic IP for single NAT Gateway (shared across all private subnets)
 resource "aws_eip" "nat" {
-  count  = var.enable_nat_gateway ? var.subnet_count : 0
+  count  = var.enable_nat_gateway ? 1 : 0
   domain = "vpc"
 
   tags = merge(
     var.tags,
     {
-      Name = "${var.project_name}-nat-eip-${count.index + 1}"
+      Name = "${var.project_name}-nat-eip"
     }
   )
 
   depends_on = [aws_internet_gateway.main]
 }
 
-# NAT Gateways (one per public subnet)
+# Single NAT Gateway (shared by all private subnets for cost optimization)
 resource "aws_nat_gateway" "main" {
-  count         = var.enable_nat_gateway ? var.subnet_count : 0
-  allocation_id = aws_eip.nat[count.index].id
-  subnet_id     = aws_subnet.public[count.index].id
+  count         = var.enable_nat_gateway ? 1 : 0
+  allocation_id = aws_eip.nat[0].id
+  subnet_id     = aws_subnet.public[0].id  # Place in first public subnet
 
   tags = merge(
     var.tags,
     {
-      Name = "${var.project_name}-nat-gateway-${count.index + 1}"
+      Name = "${var.project_name}-nat-gateway"
     }
   )
 
@@ -122,6 +122,7 @@ resource "aws_route_table_association" "public" {
 }
 
 # Route Tables for Private Subnets
+# All private subnets share the same single NAT Gateway
 resource "aws_route_table" "private" {
   count  = var.subnet_count
   vpc_id = aws_vpc.main.id
@@ -130,7 +131,7 @@ resource "aws_route_table" "private" {
     for_each = var.enable_nat_gateway ? [1] : []
     content {
       cidr_block     = "0.0.0.0/0"
-      nat_gateway_id = aws_nat_gateway.main[count.index].id
+      nat_gateway_id = aws_nat_gateway.main[0].id  # All use the same single NAT Gateway
     }
   }
 
