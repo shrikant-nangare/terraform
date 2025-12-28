@@ -248,6 +248,9 @@ resource "aws_cloudwatch_log_group" "cluster" {
 
   lifecycle {
     ignore_changes = [retention_in_days]
+    # Prevent deletion to avoid permission issues
+    # If you need to delete the log group, do it manually via AWS Console or CLI
+    prevent_destroy = true
   }
 }
 
