@@ -52,6 +52,37 @@ variable "user_data" {
   default     = ""
 }
 
+# ASG Variables
+variable "asg_instance_type" {
+  description = "EC2 instance type for ASG instances"
+  type        = string
+  default     = "t3.micro"
+}
+
+variable "asg_min_size" {
+  description = "Minimum number of instances in ASG"
+  type        = number
+  default     = 1
+}
+
+variable "asg_max_size" {
+  description = "Maximum number of instances in ASG"
+  type        = number
+  default     = 5
+}
+
+variable "asg_desired_capacity" {
+  description = "Desired number of instances in ASG"
+  type        = number
+  default     = 1
+}
+
+variable "asg_cpu_target" {
+  description = "Target CPU utilization percentage for auto scaling (default: 60%)"
+  type        = number
+  default     = 60
+}
+
 # EKS Variables
 variable "eks_cluster_name" {
   description = "Name of the EKS cluster"

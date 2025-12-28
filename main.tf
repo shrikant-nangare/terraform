@@ -27,7 +27,7 @@ module "vpc" {
   tags               = var.tags
 }
 
-# EC2 Module
+# EC2 Module (1 instance in public, 1 in private)
 module "ec2" {
   source = "./modules/ec2"
 
@@ -41,6 +41,25 @@ module "ec2" {
   ssh_allowed_cidr   = var.ssh_allowed_cidr
   user_data          = var.user_data
   tags               = var.tags
+}
+
+# Auto Scaling Group Module (CPU-based auto scaling)
+module "asg" {
+  source = "./modules/asg"
+
+  project_name            = var.project_name
+  public_subnet_id        = module.vpc.public_subnet_ids[0]
+  private_subnet_id       = module.vpc.private_subnet_ids[0]
+  public_security_group_id  = module.ec2.public_security_group_id
+  private_security_group_id = module.ec2.private_security_group_id
+  instance_type           = var.asg_instance_type
+  key_pair_name           = var.key_pair_name
+  min_size                = var.asg_min_size
+  max_size                = var.asg_max_size
+  desired_capacity        = var.asg_desired_capacity
+  cpu_target              = var.asg_cpu_target
+  user_data               = var.user_data
+  tags                    = var.tags
 }
 
 # EKS Module

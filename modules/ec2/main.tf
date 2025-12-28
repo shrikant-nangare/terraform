@@ -98,12 +98,11 @@ resource "aws_security_group" "private_instances" {
   )
 }
 
-# EC2 Instances in Public Subnets
+# EC2 Instance in Public Subnet (1 instance)
 resource "aws_instance" "public" {
-  count                  = length(var.public_subnet_ids)
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = var.instance_type
-  subnet_id              = var.public_subnet_ids[count.index]
+  subnet_id              = var.public_subnet_ids[0]
   vpc_security_group_ids = [aws_security_group.public_instances.id]
   key_name               = var.key_pair_name != "" ? var.key_pair_name : null
   user_data              = var.user_data != "" ? var.user_data : null
@@ -111,18 +110,17 @@ resource "aws_instance" "public" {
   tags = merge(
     var.tags,
     {
-      Name = "${var.project_name}-public-instance-${count.index + 1}"
+      Name = "${var.project_name}-public-instance"
       Type = "public"
     }
   )
 }
 
-# EC2 Instances in Private Subnets
+# EC2 Instance in Private Subnet (1 instance)
 resource "aws_instance" "private" {
-  count                  = length(var.private_subnet_ids)
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = var.instance_type
-  subnet_id              = var.private_subnet_ids[count.index]
+  subnet_id              = var.private_subnet_ids[0]
   vpc_security_group_ids = [aws_security_group.private_instances.id]
   key_name               = var.key_pair_name != "" ? var.key_pair_name : null
   user_data              = var.user_data != "" ? var.user_data : null
@@ -130,7 +128,7 @@ resource "aws_instance" "private" {
   tags = merge(
     var.tags,
     {
-      Name = "${var.project_name}-private-instance-${count.index + 1}"
+      Name = "${var.project_name}-private-instance"
       Type = "private"
     }
   )
