@@ -106,7 +106,7 @@ variable "eks_node_group_role_arn" {
 variable "eks_cluster_name" {
   description = "Name of the EKS cluster"
   type        = string
-  default     = ""
+  default     = "myekscluster"
 }
 
 variable "eks_kubernetes_version" {
