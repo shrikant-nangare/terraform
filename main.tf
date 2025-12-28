@@ -17,6 +17,9 @@ provider "aws" {
   region = var.aws_region
 }
 
+# Get current AWS account ID
+data "aws_caller_identity" "current" {}
+
 # EKS IAM Roles (created with permitted names for restricted environments)
 # These roles are created if they don't exist and use_eks_permitted_roles is true
 resource "aws_iam_role" "eks_cluster" {
@@ -95,17 +98,30 @@ resource "aws_iam_role_policy_attachment" "eks_node_registry_policy" {
 
 # Local values for EKS role ARNs
 # If use_eks_permitted_roles is true, use the roles created in root module
-# Otherwise, use the provided ARNs (or empty string to let EKS module create them)
+# Otherwise, use the provided ARNs or construct from role names
 locals {
-  # When use_eks_permitted_roles is true, use the root module's roles
-  # When false, use the provided ARNs from variables
-  eks_cluster_role_arn = var.use_eks_permitted_roles && var.eks_cluster_name != "" ? (
-    try(aws_iam_role.eks_cluster[0].arn, var.eks_cluster_role_arn)
-  ) : var.eks_cluster_role_arn
+  # Get current AWS account ID
+  current_account_id = data.aws_caller_identity.current.account_id
   
+  # Construct role ARN from role name if only role name is provided (not full ARN)
+  # If var.eks_cluster_role_arn starts with "arn:", use it as-is
+  # Otherwise, treat it as a role name and construct the ARN
+  eks_cluster_role_arn = var.use_eks_permitted_roles && var.eks_cluster_name != "" ? (
+    try(aws_iam_role.eks_cluster[0].arn, "")
+  ) : (
+    var.eks_cluster_role_arn != "" ? (
+      startswith(var.eks_cluster_role_arn, "arn:") ? var.eks_cluster_role_arn : "arn:aws:iam::${local.current_account_id}:role/${var.eks_cluster_role_arn}"
+    ) : ""
+  )
+  
+  # Same logic for node group role
   eks_node_group_role_arn = var.use_eks_permitted_roles && var.eks_cluster_name != "" ? (
-    try(aws_iam_role.eks_node_group[0].arn, var.eks_node_group_role_arn)
-  ) : var.eks_node_group_role_arn
+    try(aws_iam_role.eks_node_group[0].arn, "")
+  ) : (
+    var.eks_node_group_role_arn != "" ? (
+      startswith(var.eks_node_group_role_arn, "arn:") ? var.eks_node_group_role_arn : "arn:aws:iam::${local.current_account_id}:role/${var.eks_node_group_role_arn}"
+    ) : ""
+  )
 }
 
 # VPC Module

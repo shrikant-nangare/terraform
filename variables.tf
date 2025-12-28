@@ -97,13 +97,13 @@ variable "use_eks_permitted_roles" {
 }
 
 variable "eks_cluster_role_arn" {
-  description = "ARN of existing IAM role for EKS cluster. Used only if use_eks_permitted_roles is false. Leave empty to let Terraform create roles with permitted names."
+  description = "ARN or name of existing IAM role for EKS cluster. Used only if use_eks_permitted_roles is false. Can be full ARN (arn:aws:iam::ACCOUNT:role/NAME) or just role name (Terraform will auto-detect account ID). Leave empty to let Terraform create roles with permitted names."
   type        = string
   default     = ""
 }
 
 variable "eks_node_group_role_arn" {
-  description = "ARN of existing IAM role for EKS node group. Used only if use_eks_permitted_roles is false. Leave empty to let Terraform create roles with permitted names."
+  description = "ARN or name of existing IAM role for EKS node group. Used only if use_eks_permitted_roles is false. Can be full ARN (arn:aws:iam::ACCOUNT:role/NAME) or just role name (Terraform will auto-detect account ID). Leave empty to let Terraform create roles with permitted names."
   type        = string
   default     = ""
 }
