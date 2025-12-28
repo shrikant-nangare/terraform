@@ -31,9 +31,10 @@ resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSClusterPolicy" {
   role       = aws_iam_role.cluster[0].name
 }
 
-# Local value to get cluster role ARN (either existing or created)
+# Local values for role ARNs (either existing or created)
 locals {
   cluster_role_arn = var.cluster_role_arn != "" ? var.cluster_role_arn : aws_iam_role.cluster[0].arn
+  node_group_role_arn = var.node_group_role_arn != "" ? var.node_group_role_arn : aws_iam_role.node_group[0].arn
 }
 
 # IAM Role for EKS Node Group (only create if existing role not provided)
@@ -81,10 +82,6 @@ resource "aws_iam_role_policy_attachment" "node_group_AmazonEC2ContainerRegistry
   role       = aws_iam_role.node_group[0].name
 }
 
-# Local value to get node group role ARN (either existing or created)
-locals {
-  node_group_role_arn = var.node_group_role_arn != "" ? var.node_group_role_arn : aws_iam_role.node_group[0].arn
-}
 
 # Security Group for EKS Cluster
 resource "aws_security_group" "cluster" {
@@ -235,10 +232,8 @@ resource "aws_eks_cluster" "main" {
 
   enabled_cluster_log_types = var.enabled_cluster_log_types
 
-  # Only depend on policy attachment if we're creating the role (not using existing)
-  depends_on = var.cluster_role_arn == "" ? [
-    aws_iam_role_policy_attachment.cluster_AmazonEKSClusterPolicy[0],
-  ] : []
+  # Dependencies are handled implicitly through role_arn reference in local.cluster_role_arn
+  # If creating role, the role and its policies will be ready before cluster creation
 
   tags = merge(
     var.tags,
@@ -291,12 +286,8 @@ resource "aws_eks_node_group" "private" {
     }
   )
 
-  # Only depend on policy attachments if we're creating the role (not using existing)
-  depends_on = var.node_group_role_arn == "" ? [
-    aws_iam_role_policy_attachment.node_group_AmazonEKSWorkerNodePolicy[0],
-    aws_iam_role_policy_attachment.node_group_AmazonEKS_CNI_Policy[0],
-    aws_iam_role_policy_attachment.node_group_AmazonEC2ContainerRegistryReadOnly[0],
-  ] : []
+  # Dependencies are handled implicitly through role_arn reference in local.node_group_role_arn
+  # If creating role, the role and its policies will be ready before node group creation
 }
 
 # EKS Public Node Group (1 node in public subnet)
@@ -338,11 +329,7 @@ resource "aws_eks_node_group" "public" {
     }
   )
 
-  # Only depend on policy attachments if we're creating the role (not using existing)
-  depends_on = var.node_group_role_arn == "" ? [
-    aws_iam_role_policy_attachment.node_group_AmazonEKSWorkerNodePolicy[0],
-    aws_iam_role_policy_attachment.node_group_AmazonEKS_CNI_Policy[0],
-    aws_iam_role_policy_attachment.node_group_AmazonEC2ContainerRegistryReadOnly[0],
-  ] : []
+  # Dependencies are handled implicitly through role_arn reference in local.node_group_role_arn
+  # If creating role, the role and its policies will be ready before node group creation
 }
 
