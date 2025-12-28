@@ -1,0 +1,41 @@
+# Copy this file to terraform.tfvars and customize as needed
+
+aws_region = "us-east-1"
+project_name = "my-project"
+vpc_cidr = "10.0.0.0/16"
+enable_nat_gateway = true
+
+# EC2 Instance Configuration
+# Creates 1 instance in public subnet and 1 instance in private subnet
+instance_type = "t3.micro"
+key_pair_name = ""
+ssh_allowed_cidr = "0.0.0.0/0"  # Restrict this to your IP for better security
+# user_data = ""  # Optional: Add user data script if needed
+
+# Auto Scaling Group Configuration
+# ASG scales based on CPU utilization (target: 60%)
+asg_instance_type = "t3.micro"
+asg_min_size = 1
+asg_max_size = 5
+asg_desired_capacity = 1
+asg_cpu_target = 60  # CPU utilization target percentage for auto scaling
+
+# EKS Cluster Configuration
+# Creates 1 node in private subnet and 1 node in public subnet
+# IMPORTANT: EKS requires existing IAM role ARNs if you don't have iam:PassRole permission
+# Set eks_cluster_name to "" (empty string) to disable EKS entirely
+eks_cluster_name = "myekscluster"  # EKS is ENABLED - set to "" to disable
+eks_kubernetes_version = "1.28"
+eks_node_instance_type = "t3.small"
+
+# EKS IAM Roles (REQUIRED - you need to fill these in with existing role ARNs)
+# Find existing roles using: aws iam list-roles --query 'Roles[?contains(RoleName, `eks`)].{Name:RoleName, Arn:Arn}' --output table
+# Or ask your AWS administrator for the role ARNs
+# 
+# Common role names to check:
+# - Cluster: eksClusterRole, EKS-Cluster-Role, AmazonEKSClusterRole
+# - Node: AmazonEKSNodeRole, EKS-Node-Role, eksNodeRole
+#
+eks_cluster_role_arn = ""  # TODO: Replace with your existing cluster role ARN
+eks_node_group_role_arn = ""  # TODO: Replace with your existing node group role ARN
+
