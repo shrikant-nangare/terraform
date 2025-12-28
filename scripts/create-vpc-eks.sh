@@ -35,9 +35,20 @@ if ! command -v aws &> /dev/null; then
     print_warn "AWS CLI is not installed. Some verification steps may fail."
 fi
 
-# Check if we're in the right directory
-if [ ! -f "main.tf" ]; then
-    print_error "main.tf not found. Please run this script from the terraform directory."
+# Find terraform root directory (where main.tf is located)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TERRAFORM_DIR="$SCRIPT_DIR/.."
+
+# Check if main.tf exists in parent directory
+if [ -f "$TERRAFORM_DIR/main.tf" ]; then
+    cd "$TERRAFORM_DIR" || exit 1
+    print_info "Changed to terraform directory: $(pwd)"
+elif [ -f "main.tf" ]; then
+    # Already in terraform directory
+    TERRAFORM_DIR="$(pwd)"
+    print_info "Running from terraform directory: $(pwd)"
+else
+    print_error "main.tf not found. Please run this script from the terraform directory or scripts directory."
     exit 1
 fi
 
