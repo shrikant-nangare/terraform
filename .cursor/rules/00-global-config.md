@@ -51,6 +51,22 @@
   3. Ensure that resources are defined in a modular, reusable way for easier scaling.
   4. Document your code and configurations with `README.md` files, explaining the purpose of each module.
   
+  Documentation Organization
+  - **All documentation files (.md) MUST be placed in the `docs/` folder**, except for the root `README.md`
+  - The root `README.md` is the only markdown file allowed in the project root
+  - When creating new documentation, always create it in `docs/` folder
+  - Use descriptive filenames in `docs/` folder (e.g., `EKS_SETUP_GUIDE.md`, `FARGATE_SETUP.md`)
+  - Do NOT create markdown files in the root directory or module directories
+  - Module-specific documentation should also go in `docs/` with clear naming (e.g., `docs/MODULE_NAME_GUIDE.md`)
+  
+  Script Organization
+  - **All script files (.sh, .py, .js, etc.) MUST be placed in the `scripts/` folder**
+  - Do NOT create script files in the root directory or module directories
+  - When creating new scripts, always create them in `scripts/` folder
+  - Use descriptive filenames with clear purpose (e.g., `create-vpc-eks.sh`, `fix-eks-permissions.sh`)
+  - Ensure scripts are executable (chmod +x) and have proper shebang lines
+  - Scripts should be organized by functionality or service (e.g., EKS scripts, VPC scripts)
+  
   Documentation and Learning Resources
   - Refer to official Terraform documentation for best practices and guidelines: https://registry.terraform.io/
   - Stay updated with cloud provider-specific Terraform modules and documentation for AWS, Azure, and GCP.
